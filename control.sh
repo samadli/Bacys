@@ -8,7 +8,7 @@ echo $COUNT
 
 if [[ $COUNT > 30 ]]
 then
-find $BACKUPDIR -type f -mtime -1 -exec rm -f
+find $BACKUPDIR -type f -mtime -30 -exec rm -f
 fi
 
 exit 0
