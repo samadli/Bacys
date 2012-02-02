@@ -33,4 +33,17 @@ case $ANSWER in
 	"n") echo "Your configuration file has been created";;
 
 esac
+
+#SECOND PART *UNDER DEVELOPMENT*
+echo "Do you want to set up control system for backups on the remote machine?"
+read ANSWERC
+case $ANSWERC in
+	"y" | "Y") scp control.sh $USERNAME'@'$MACHINE':'/home/kamran;;
+	"n" | "N") echo "NO";;
+
+esac
+
+echo "You've done!"
+
+
 exit 0
