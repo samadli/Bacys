@@ -15,6 +15,7 @@ sudo gzip $ARCHIVE
 if [[ $? == 0 ]]; then
 	echo "Everything is Okay"
 fi
+#You need ssh public key to complete this action. So, please follow the instruction: http://wiki_page_of_ssh_key_setting_up
 scp $ARCHIVE.gz $USERNAME'@'$MACHINE':'$MBACKUPDIR
 
 
