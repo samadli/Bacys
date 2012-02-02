@@ -1,12 +1,5 @@
 #!/bin/bash
-# This script is for instant backup. 
-# Created special for AzGRID - Azerbaijan GRID Computing Segment.
-# Author: Kamran Samedli
-# Email:  Kamran
 
-
-#!/bin/bash
-#archiving system
 sudo -k
 NOW=$(date +'%F')
 read BACKUPDIR
