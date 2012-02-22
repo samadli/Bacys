@@ -26,10 +26,10 @@ read_local_dir () {
 	read DST_DIR
 	if [ -w $DST_DIR ]
 	then
-		echo "OK. Folder exists and is writable. Next step.."
+		echo " $(tput setaf 2) OK. Folder exists and is writable. Next step.. $(tput sgr0)"
 	else
-		echo "Folder does not exist or is not writable."
-		echo "Please try again."
+		echo " $(tput setaf 1) $(tput bold)Folder does not exist or is not writable. $(tput sgr0)"
+		echo " $(tput setaf 1) $(tput bold)Please try again. $(tput sgr0)"
 		read_local_dir
 	fi
 }
@@ -53,18 +53,18 @@ read_ftp_cred () {
 END_FTP
 	if grep -q "550 " $ftp_log
 	then
-		ftp_resp="Failed to change to destination directory"
+		ftp_resp=" $(tput setaf 1) $(tput bold)Failed to change to destination directory $(tput sgr0)"
 	elif grep -q "553 " $ftp_log
 	then
-		ftp_resp="Failed to write to destination folder"
+		ftp_resp=" $(tput setaf 1) $(tput bold)Failed to write to destination folder $(tput sgr0)"
 	elif grep -q "226 " $ftp_log
 	then
-		ftp_resp="FTP check OK"
+		ftp_resp=" $(tput setaf 1) $(tput bold)FTP check OK $(tput sgr0)"
 	elif grep -q "530 " $ftp_log
 	then
-		ftp_resp="Login incorrect"
+		ftp_resp=" $(tput setaf 1) $(tput bold)Login incorrect $(tput sgr0)"
 	else
-		ftp_resp="Can't connect. Check server address"
+		ftp_resp=" $(tput setaf 1) $(tput bold)Can't connect. Check server address $(tput sgr0)"
 	fi
 	echo $ftp_resp
 }
@@ -79,9 +79,9 @@ read_scp_cred () {
 	scp $scp_test $SCP_USER'@'$SCP_HOST':'$DST_DIR
 	if [ $? -ne 0 ]
 	then
-		echo -e "Error occured.\n"
+		echo -e " $(tput setaf 1) $(tput bold)Error occured.\n $(tput sgr0)"
 	else
-		echo -e "SCP credentials are OK.\n"
+		echo -e " $(tput setaf 2) SCP credentials are OK.\n $(tput sgr0)"
 	fi
 	rm $scp_test
 }
@@ -98,7 +98,7 @@ read_dst_option () {
 		3) read_ftp_cred; break;;
 		4) echo "Calls function to read rsync options."; break;;
 		5) echo "Calls function to read sftp credentials."; break;;
-		*) echo "Please enter number in range [1-5]"
+		*) echo " $(tput setaf 1) $(tput bold)Please enter number in range [1-5] $(tput sgr0)"
 	echo "Press Enter to continue. . ."; read ;;
 	esac
 	done
@@ -121,19 +121,47 @@ create_backup_script () {
 	chmod +x $bkp_script_name
 }
 
+read_cron_option () {
+	command=`pwd`"/"$bkp_script_name
+	echo "Do you want to schedule your backup to run periodically?"
+	read ANSWER
+	until [[ "$ANSWER" = [yYnN] ]];
+	do
+		echo " $(tput setaf 1) $(tput bold)You've entered the wrong parameter. Use only y for yes and n for no $(tput sgr0)"
+		read ANSWER
+	done
+	if [[ $ANSWER = [yY] ]]; then
+		echo "Please specify periodicity of backup if you want to schedule it."
+		echo -e "1. Hourly\n2. Daily\n3. Weekdays only\n4. Weekly\n5. Monthly"
+		read ANSWER
+		until [[ "$ANSWER" = [12345] ]];
+		do
+			echo " $(tput setaf 1) $(tput bold)You've entered the wrong parameter. Please enter the number of your choice from range 1-5. $(tput sgr0)"
+			read ANSWER
+		done
+		case $ANSWER in
+			1) job="0 * * * * $command";;
+			2) job="0 0 * * * $command";;
+			3) job="0 0 * * 1-5 $command";;
+			4) job="0 0 * * 0 $command";;
+			5) job="0 0 1 * * $command";;
+		esac
+	cat <(fgrep -i -v "$command" <(crontab -l)) <(echo "$job") | crontab -
+	fi
+}
+
 read_src_folders
 read_dst_option
 create_backup_script
-
+read_cron_option
 echo "Do you want to start the backup process? (Y/N)"
 read ANSWER
-until [[ "$ANSWER" = "y" || "$ANSWER" = "Y" || "$ANSWER" = "n" || "$ANSWER" = "N" ]];
+until [[ "$ANSWER" = [yYnN] ]];
 do
-	echo "You've entered wrong parameter. Use only y for yes and n for no"
+	echo " $(tput setaf 1) $(tput bold)You've entered the wrong parameter. Use only y for yes and n for no $(tput sgr0)"
 	read ANSWER
 done
 case $ANSWER in
 	[yY]) sh $bkp_script_name;;
-	 [nN]) echo "Your configuration file has been created";;
-
+	 [nN]) echo " $(tput setaf 2) Your configuration file has been created $(tput sgr0)";;
 esac
